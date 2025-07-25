@@ -69,52 +69,83 @@
   </div>
 
   <script>
-    const entryOverlay = document.getElementById('entry-overlay');
-    const mainWrapper = document.getElementById('main-wrapper');
-    const audio = document.getElementById('bg-music');
+  const entryOverlay = document.getElementById('entry-overlay');
+  const mainWrapper = document.getElementById('main-wrapper');
+  const audio = document.getElementById('bg-music');
 
-    const songs = [
-      { title: "Song 1 - LONG WAY FROM PERFECT", src: "https://files.catbox.moe/cv6yfw.mp3" },
-      { title: "Song 2 - ROB DA BANK", src: "https://files.catbox.moe/hz61ji.mp3" },
-      { title: "Song 3 - Stop Playin Wit My Name", src: "https://files.catbox.moe/6epipi.mp3" }
-    ];
+  const playBtn = document.getElementById('play-btn');
+  const pauseBtn = document.getElementById('pause-btn');
+  const songTitleElement = document.getElementById('song-title');
+  const songTime = document.getElementById('song-time');
 
-    let currentSongIndex = 0;
+  const songs = [
+    { title: "Song 1 - LONG WAY FROM PERFECT", src: "https://files.catbox.moe/cv6yfw.mp3" },
+    { title: "Song 2 - ROB DA BANK", src: "https://files.catbox.moe/hz61ji.mp3" },
+    { title: "Song 3 - Stop Playin Wit My Name", src: "https://files.catbox.moe/6epipi.mp3" }
+  ];
 
-    function playNextSong() {
-      currentSongIndex = (currentSongIndex + 1) % songs.length;
-      audio.src = songs[currentSongIndex].src;
-      audio.play();
+  let currentSongIndex = 0;
+
+  function formatTime(seconds) {
+    const min = Math.floor(seconds / 60);
+    const sec = Math.floor(seconds % 60).toString().padStart(2, '0');
+    return `${min}:${sec}`;
+  }
+
+  function updateTime() {
+    if (!isNaN(audio.duration)) {
+      songTime.textContent = `${formatTime(audio.currentTime)} / ${formatTime(audio.duration)}`;
+    } else {
+      songTime.textContent = `00:00 / 00:00`;
     }
+  }
 
-    entryOverlay.addEventListener('click', () => {
-      entryOverlay.style.opacity = '0';
-      setTimeout(() => {
-        entryOverlay.style.display = 'none';
-        mainWrapper.style.opacity = '1';
-
-        audio.src = songs[currentSongIndex].src;
-        audio.play().catch(err => {
-          console.log("Autoplay failed:", err);
-        });
-      }, 500);
+  function playSong() {
+    audio.src = songs[currentSongIndex].src;
+    songTitleElement.textContent = songs[currentSongIndex].title;
+    audio.play().catch(err => {
+      console.log("Playback failed:", err);
     });
+  }
 
-    audio.addEventListener('ended', playNextSong);
+  function playNextSong() {
+    currentSongIndex = (currentSongIndex + 1) % songs.length;
+    playSong();
+  }
 
-    // OnlyFans Popup Logic
-    const onlyfansLink = document.getElementById('onlyfans-link');
-    const onlyfansPopup = document.getElementById('onlyfans-popup');
-    const popupExit = document.getElementById('popup-exit');
+  entryOverlay.addEventListener('click', () => {
+    entryOverlay.style.opacity = '0';
+    setTimeout(() => {
+      entryOverlay.style.display = 'none';
+      mainWrapper.style.opacity = '1';
+      playSong();
+    }, 500);
+  });
 
-    onlyfansLink.addEventListener('click', (e) => {
-      e.preventDefault();
-      onlyfansPopup.classList.remove('hidden');
-    });
+  playBtn.addEventListener('click', () => {
+    if (audio.src === "") playSong();
+    else audio.play();
+  });
 
-    popupExit.addEventListener('click', () => {
-      onlyfansPopup.classList.add('hidden');
-    });
-  </script>
-</body>
-</html>
+  pauseBtn.addEventListener('click', () => {
+    audio.pause();
+  });
+
+  audio.addEventListener('loadedmetadata', updateTime);
+  audio.addEventListener('timeupdate', updateTime);
+  audio.addEventListener('ended', playNextSong);
+
+  // OnlyFans Popup Logic
+  const onlyfansLink = document.getElementById('onlyfans-link');
+  const onlyfansPopup = document.getElementById('onlyfans-popup');
+  const popupExit = document.getElementById('popup-exit');
+
+  onlyfansLink.addEventListener('click', (e) => {
+    e.preventDefault();
+    onlyfansPopup.classList.remove('hidden');
+  });
+
+  popupExit.addEventListener('click', () => {
+    onlyfansPopup.classList.add('hidden');
+  });
+</script>
